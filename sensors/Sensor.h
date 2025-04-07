@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include <condition_variable>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -91,17 +92,23 @@ class OneShotSensor : public Sensor {
     virtual Result flush() override { return Result::BAD_VALUE; }
 };
 
-class UdfpsSensor : public OneShotSensor {
+class SysfsPollingOneShotSensor : public OneShotSensor {
   public:
-    UdfpsSensor(int32_t sensorHandle, ISensorsEventCallback* callback);
-    virtual ~UdfpsSensor() override;
+    SysfsPollingOneShotSensor(int32_t sensorHandle, ISensorsEventCallback* callback,
+                              const std::string& pollPath, const std::string& name,
+                              const std::string& typeAsString, SensorType type);
+    virtual ~SysfsPollingOneShotSensor() override;
 
     virtual void activate(bool enable) override;
+    virtual void activate(bool enable, bool notify, bool lock);
     virtual void setOperationMode(OperationMode mode) override;
+    virtual std::vector<Event> readEvents() override;
+    virtual void fillEventData(Event& event);
 
   protected:
     virtual void run() override;
-    virtual std::vector<Event> readEvents();
+
+    std::ofstream mEnableStream;
 
   private:
     void interruptPoll();
@@ -109,9 +116,39 @@ class UdfpsSensor : public OneShotSensor {
     struct pollfd mPolls[2];
     int mWaitPipeFd[2];
     int mPollFd;
+};
 
-    int mScreenX;
-    int mScreenY;
+const std::string kTsUdfpsPressedPath = "/sys/kernel/oplus_display/fp_state";
+
+class UdfpsSensor : public SysfsPollingOneShotSensor {
+  public:
+    UdfpsSensor(int32_t sensorHandle, ISensorsEventCallback* callback)
+        : SysfsPollingOneShotSensor(
+              sensorHandle, callback, kTsUdfpsPressedPath,
+              "UDFPS Sensor", "org.lineageos.sensor.udfps",
+              static_cast<SensorType>(static_cast<int32_t>(SensorType::DEVICE_PRIVATE_BASE) + 1)) {}
+};
+
+const std::string kTsDoubleTapPressedPath = DOUBLE_TAP_PATH;
+
+class DoubleTapSensor : public SysfsPollingOneShotSensor {
+  public:
+    DoubleTapSensor(int32_t sensorHandle, ISensorsEventCallback* callback)
+        : SysfsPollingOneShotSensor(
+              sensorHandle, callback, kTsDoubleTapPressedPath,
+              "Double Tap Sensor", "org.derp.sensor.double_tap",
+              static_cast<SensorType>(static_cast<int32_t>(SensorType::DEVICE_PRIVATE_BASE) + 1)) {}
+};
+
+const std::string kTsTapPressedPath = TAP_PATH;
+
+class SingleTapSensor : public SysfsPollingOneShotSensor {
+  public:
+    SingleTapSensor(int32_t sensorHandle, ISensorsEventCallback* callback)
+        : SysfsPollingOneShotSensor(
+              sensorHandle, callback, kTsTapPressedPath,
+              "Tap Sensor", "org.derp.sensor.tap",
+              static_cast<SensorType>(static_cast<int32_t>(SensorType::DEVICE_PRIVATE_BASE) + 1)) {}
 };
 
 }  // namespace implementation

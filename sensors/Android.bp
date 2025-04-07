@@ -4,9 +4,35 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+soong_config_module_type {
+    name: "oplus_sensors_hal_cc_defaults",
+    module_type: "cc_defaults",
+    config_namespace: "OPLUS_SENSORS",
+    value_variables: ["DOUBLE_TAP_PATH", "TAP_PATH"],
+    properties: ["cppflags"],
+}
+
+oplus_sensors_hal_cc_defaults {
+    name: "oplus_sensors_hal_defaults",
+    soong_config_variables: {
+        DOUBLE_TAP_PATH: {
+           cppflags: ["-DDOUBLE_TAP_PATH=\"%s\""],
+           conditions_default: {
+               cppflags: ["-DDOUBLE_TAP_PATH=\"/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi0/spi0.0/synaptics_tcm_hbp.0/double_tap_pressed\""]
+           },
+        },
+        TAP_PATH: {
+           cppflags: ["-DTAP_PATH=\"%s\""],
+           conditions_default: {
+               cppflags: ["-DTAP_PATH=\"/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi0/spi0.0/synaptics_tcm_hbp.0/single_tap_pressed\""]
+           },
+       },
+    },
+}
+
 cc_library_shared {
     name: "sensors.oplus",
-    defaults: ["hidl_defaults"],
+    defaults: ["hidl_defaults", "oplus_sensors_hal_defaults"],
     srcs: [
         "Sensor.cpp",
         "SensorsSubHal.cpp",
