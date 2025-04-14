@@ -8,7 +8,7 @@ soong_config_module_type {
     name: "oplus_sensors_hal_cc_defaults",
     module_type: "cc_defaults",
     config_namespace: "OPLUS_SENSORS",
-    value_variables: ["DOUBLE_TAP_PATH", "TAP_PATH"],
+    value_variables: ["DOUBLE_TAP_PATH", "TAP_PATH", "FP_PATH"],
     properties: ["cppflags"],
 }
 
@@ -26,7 +26,13 @@ oplus_sensors_hal_cc_defaults {
            conditions_default: {
                cppflags: ["-DTAP_PATH=\"/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi0/spi0.0/synaptics_tcm_hbp.0/single_tap_pressed\""]
            },
-       },
+        },
+        FP_PATH: {
+           cppflags: ["-DFP_PATH=\"%s\""],
+           conditions_default: {
+               cppflags: ["-DFP_PATH=\"/sys/kernel/oplus_display/fp_state\""]
+           },
+        },
     },
 }
 

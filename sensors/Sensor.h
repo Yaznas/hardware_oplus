@@ -118,7 +118,7 @@ class SysfsPollingOneShotSensor : public OneShotSensor {
     int mPollFd;
 };
 
-const std::string kTsUdfpsPressedPath = "/sys/kernel/oplus_display/fp_state";
+const std::string kTsUdfpsPressedPath = FP_PATH;
 
 class UdfpsSensor : public SysfsPollingOneShotSensor {
   public:
