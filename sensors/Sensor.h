@@ -42,7 +42,6 @@ namespace subhal {
 namespace implementation {
 
 extern std::string GetPollPath(const char** array);
-extern bool IsFileValid(const std::string& file);
 
 class ISensorsEventCallback {
   public:
@@ -121,38 +120,55 @@ class SysfsPollingOneShotSensor : public OneShotSensor {
     int mPollFd;
 };
 
-const std::string kTsUdfpsPressedPath = FP_PATH;
+static const char* udfpsPaths[] = {
+  "/sys/kernel/oplus_display/fp_state",
+  "/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi0/spi0.0/synaptics_tcm_hbp.0/fp_pressed",
+  "/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi1/spi1.0/synaptics_tcm_hbp.0/fp_pressed",
+  NULL
+};
 
 class UdfpsSensor : public SysfsPollingOneShotSensor {
   public:
     UdfpsSensor(int32_t sensorHandle, ISensorsEventCallback* callback)
         : SysfsPollingOneShotSensor(
-              sensorHandle, callback, kTsUdfpsPressedPath,
+              sensorHandle, callback, GetPollPath(udfpsPaths),
               "UDFPS Sensor", "org.lineageos.sensor.udfps",
               static_cast<SensorType>(static_cast<int32_t>(SensorType::DEVICE_PRIVATE_BASE) + 1)) {}
 };
 
-const std::string kTsDoubleTapPressedPath = DOUBLE_TAP_PATH;
+#ifdef USES_DOUBLE_TAP_SENSOR
+static const char* doubleTapPaths[] = {
+  "/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi0/spi0.0/synaptics_tcm_hbp.0/double_tap_pressed",
+  "/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi1/spi1.0/synaptics_tcm_hbp.0/double_tap_pressed",
+  NULL
+};
 
 class DoubleTapSensor : public SysfsPollingOneShotSensor {
   public:
     DoubleTapSensor(int32_t sensorHandle, ISensorsEventCallback* callback)
         : SysfsPollingOneShotSensor(
-              sensorHandle, callback, kTsDoubleTapPressedPath,
+              sensorHandle, callback, GetPollPath(doubleTapPaths),
               "Double Tap Sensor", "org.derp.sensor.double_tap",
               static_cast<SensorType>(static_cast<int32_t>(SensorType::DEVICE_PRIVATE_BASE) + 1)) {}
 };
+#endif
 
-const std::string kTsTapPressedPath = TAP_PATH;
+#ifdef USES_TAP_SENSOR
+static const char* singleTapPaths[] = {
+  "/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi0/spi0.0/synaptics_tcm_hbp.0/single_tap_pressed",
+  "/sys/devices/platform/soc/ac0000.qcom,qupv3_1_geni_se/a90000.spi/spi_master/spi1/spi1.0/synaptics_tcm_hbp.0/single_tap_pressed",
+  NULL
+};
 
 class SingleTapSensor : public SysfsPollingOneShotSensor {
   public:
     SingleTapSensor(int32_t sensorHandle, ISensorsEventCallback* callback)
         : SysfsPollingOneShotSensor(
-              sensorHandle, callback, kTsTapPressedPath,
+              sensorHandle, callback, GetPollPath(singleTapPaths),
               "Tap Sensor", "org.derp.sensor.tap",
               static_cast<SensorType>(static_cast<int32_t>(SensorType::DEVICE_PRIVATE_BASE) + 1)) {}
 };
+#endif
 
 }  // namespace implementation
 }  // namespace subhal
