@@ -17,6 +17,15 @@
 #define RICHTAP_MEDIUM_STRENGTH 89
 #define RICHTAP_STRONG_STRENGTH 99
 
+enum vibrationMode {
+    MODE_NONE,
+    MODE_TIMEOUT,
+    MODE_PREBAKED,
+    MODE_STREAM,
+};
+
+static vibrationMode sLastMode = MODE_NONE;
+
 namespace aidl {
 namespace android {
 namespace hardware {
@@ -68,6 +77,7 @@ ndk::ScopedAStatus Vibrator::on(int32_t timeoutMs,
         }).detach();
     }
 
+    sLastMode = MODE_TIMEOUT;
     return ndk::ScopedAStatus::ok();
 }
 
@@ -96,6 +106,9 @@ ndk::ScopedAStatus Vibrator::perform(Effect effect, EffectStrength es,
             return ndk::ScopedAStatus(AStatus_fromExceptionCode(EX_UNSUPPORTED_OPERATION));
     }
 
+    if (sLastMode == MODE_STREAM)
+        aac_vibra_setAmplitude(0xFF);
+
     int32_t ret = aac_vibra_looper_prebaked_effect(static_cast<uint32_t>(effect), strength);
     if (ret < 0) {
         ALOGE("AAC perform failed: %d\n", ret);
@@ -111,6 +124,7 @@ ndk::ScopedAStatus Vibrator::perform(Effect effect, EffectStrength es,
 
     *_aidl_return = ret;
 
+    sLastMode = MODE_PREBAKED;
     return ndk::ScopedAStatus::ok();
 }
 
@@ -130,6 +144,7 @@ ndk::ScopedAStatus Vibrator::setAmplitude(float amplitude) {
         return ndk::ScopedAStatus(AStatus_fromExceptionCode(EX_SERVICE_SPECIFIC));
     }
 
+    sLastMode = MODE_STREAM;
     return ndk::ScopedAStatus::ok();
 }
 
