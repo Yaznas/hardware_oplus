@@ -6,8 +6,19 @@
 
 cc_defaults {
     name: "libshims_aidl_fingerprint.oplus_defaults",
-    srcs: ["SensorPropsShim.cpp"],
-    shared_libs: ["libbase"],
+    srcs: [
+        "SensorPropsShim.cpp",
+        "FpPressShim.cpp",
+    ],
+    shared_libs: [
+        "libbinder_ndk",
+        "liblog",
+        "libdl",
+        "libbase",
+    ],
+    cflags: [
+        "-Wno-unused-parameter",
+    ],
     device_specific: true,
 }
 
